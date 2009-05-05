@@ -7,6 +7,8 @@ Group (C Source File)
 Group (Source Group 1)
 
 File 1,1,<.\Natcar.c><Natcar.c>
+File 1,1,<.\printf-stdarg.c><printf-stdarg.c>
+File 1,1,<.\serial.c><serial.c>
 File 2,2,<.\startup.s><startup.s>
 File 2,5,<.\Abstract.txt><Abstract.txt>
 
