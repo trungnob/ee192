@@ -1,0 +1,36 @@
+ Author        : Quan Gan, UC Berkeley graduate, TA Spring 2006
+
+ Date          : August 2006
+
+ File          : Natcar.c
+
+ Hardware      : ADuC7020
+
+ Description   : This is the base code for EE192: Mechatronics Design Lab.
+ 				 This code will print statements to the serial port, echo
+				 keyboard input, output toggled pulses from a timer and
+				 demonstrate a simple ADC operation.
+
+				 One can connect to the MiniKit via HyperTerminal at 9600bps
+				 through the serial port. Typing in the terminal will return
+				 simple "printf" statements while switching the green LED (P4.2)
+				 on and off.
+
+				 The ADC works by taking the output voltage from the potentiometer
+				 on the MiniKit (which is wired to ADC0) and outputting it to DAC1
+				 (which is wired to the red LED). By adjusting the potentiometer,
+				 the red LED's brightness is indirectly adjusted:
+				 sampled voltage -> ADC0 -> DAC1 -> led intensity (the LED is active
+				 low, therefore higher ADC readings mean lower intensity)
+				 
+				 The ADC uses the FAST INTERRUPT REQUEST (FIQ), which allows faster
+				 and higher priority handling of data than the standard IRQ. 
+
+				 There are two timers interrupts setup in this sample code. Each
+				 will count down from the initialize value and generate its own
+				 interrupt when the counter reaches 0. When the interrupts are serviced
+				 P0.0 for Timer 1 and P0.3 for Timer 0 will be toggled. This can be
+				 monitored from an oscilloscope.
+
+				 An external printf statement is defined instead of using
+				 the <stdio.h> library in order to decrease code size.

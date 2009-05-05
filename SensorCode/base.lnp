@@ -1,0 +1,1 @@
+-T .\ADuC702X.ld -mthumb-interwork -Wl -o base.elf "serial.o" "printf-stdarg.o" "natcar.o" "startup.o" -nostartfiles
