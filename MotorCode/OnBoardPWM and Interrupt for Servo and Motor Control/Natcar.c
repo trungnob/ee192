@@ -188,11 +188,11 @@ int main (void)  {
 	//sd(jchar,2,2,2,2,2);
 	while(1)
 	{	 	
-		if (Motor_PWM_relative_duty_cycle>desire_speed && count!=count2){//((jchar-48) == 8) {
-			if (Motor_PWM_relative_duty_cycle >desire_speed) {
+		if (Motor_PWM_relative_duty_cycle > desire_speed && count != count2){//((jchar-48) == 8) {
+			if (Motor_PWM_relative_duty_cycle > desire_speed) {
 				Motor_PWM_relative_duty_cycle -= 1;
 			} else {
-				Motor_PWM_relative_duty_cycle = desire_speed ;
+				Motor_PWM_relative_duty_cycle = desire_speed;
 			}
 		}
    		/*********************************************/
@@ -217,7 +217,6 @@ int main (void)  {
 				SpeedUpThreshold += 25;
 				loop++;
 			}
-
 			Motor_PWM_relative_duty_cycle = FAST;
 
 
@@ -228,6 +227,29 @@ int main (void)  {
 		if(Mode == CONSTANT && distance >= 1) {
 			Motor_PWM_relative_duty_cycle = CONSTFAST; //Constant speed fast. We will update this every lap
 		}
+
+		else if(Mode == LEARNING) {
+			Motor_PWM_relative_duty_cycle = LEARNINGSPEED; //keep it at a slow speed 
+			if((adc0 > TurnThresholdUp) || (adc0 < TurnThresholdDown)) { //Curved  
+				if((distance - LStart[RecordPointer]) > ThresholdDist) { //Greater than the distance to be straight Line
+					LFinish[RecordPointer] = distance;
+					RecordPointer++; //increment the next slot;
+					LStart[RecordPointer] = distance; //set the next straight
+				}
+				else {
+					LStart[RecordPointer] = distance; //Start of the straight Line
+				}
+			}
+			if(EnteringCrossing == 0 && adc2 >= CrossingThreshold1) {	//Entering Crossing
+				Crossing[RecordCrossing] = distance; //set the crossing
+				EnteringCrossing = 1; //set that we entered a crossing
+				RecordCrossing++;
+			}
+			else if(EnteringCrossing == 1 && adc2 < CrossingThreshold2) { //Exiting Crossing
+				EnteringCrossing = 0; //reset to indicate that we exited that crossing
+			} 
+		}
+
 		else if(Mode == RACING && TrackLength != 1500000) {
 			Dir = 1;
 			if(EnteringCrossing == 0 && adc2 >= CrossingThreshold1) {	//Entering Crossing
@@ -251,7 +273,7 @@ int main (void)  {
 					GP2DAT &= 0xFFBFFFFF; //turn it off
 				}
 				Motor_PWM_relative_duty_cycle = SLOW;
-				if(distance == (LStart[PlaybackPointer + 1] - (SpeedUpThreshold + 1))) {
+				if(distance == (LStart[PlaybackPointer + 1] - SpeedUpThreshold)) {
 					PlaybackPointer++; //increment the array pointer to the next one
 				}		
 			}
@@ -296,31 +318,7 @@ int main (void)  {
 					Motor_PWM_relative_duty_cycle = FAST;
 				}
 			}
-		}
-		else if(Mode == LEARNING) {
-			Motor_PWM_relative_duty_cycle = LEARNINGSPEED; //keep it at a slow speed 
-			if((adc0 > TurnThresholdUp) || (adc0 < TurnThresholdDown)) { //Curved  
-				if((distance - LStart[RecordPointer]) > ThresholdDist) { //Greater than the distance to be straight Line
-					LFinish[RecordPointer] = distance;
-					RecordPointer++; //increment the next slot;
-					LStart[RecordPointer] = distance; 
-				}
-				else {
-					LStart[RecordPointer] = distance; //Start of the straight Line
-				}
-			}
-			if(EnteringCrossing == 0 && adc2 >= CrossingThreshold1) {	//Entering Crossing
-				Crossing[RecordCrossing] = distance; //set the crossing
-				EnteringCrossing = 1; //set that we entered a crossing
-				RecordCrossing++;
-			}
-			else if(EnteringCrossing == 1 && adc2 < CrossingThreshold2) { //Exiting Crossing
-				EnteringCrossing = 0; //reset to indicate that we exited that crossing
-			} 
-		}
-		
-		
-			  
+		}		  
 	  
 		Motor_PWM_tempVar = Motor_PWM_relative_duty_cycle;				 
 		if (Motor_PWM_tempVar >= 50) {
@@ -381,20 +379,14 @@ int main (void)  {
 }						 
 
 void SpeedController(int Kp, int OffSet,int Ki) {
- int ErrorVelocity= DesiredSpeed-Velocity;
- if (Velocity>5){
-	 	
-	 		Motor_PWM_relative_duty_cycle+=Kp*ErrorVelocity;
+	int ErrorVelocity = DesiredSpeed-Velocity;
+	if(Velocity > 5) {
+	 	Motor_PWM_relative_duty_cycle+=Kp*ErrorVelocity;
 		Motor_PWM_relative_duty_cycle=100-Motor_PWM_relative_duty_cycle;
-		}
-   if (Motor_PWM_relative_duty_cycle <=45 )Motor_PWM_relative_duty_cycle=45;
-     
-else;
- 
-return;
-
-
-	
+	}
+    if (Motor_PWM_relative_duty_cycle <= 45)
+		Motor_PWM_relative_duty_cycle=45;    
+ 	return;	
 }
 
 void Serial_Setup(void){
@@ -407,18 +399,16 @@ void Serial_Setup(void){
 }
 
 void My_IRQ_Function() {				// Interupt service Routine
-	if ((IRQSTA & PLA_IRQ0_BIT) !=0) 	    // Interupt from Hall Sensor
+	if ((IRQSTA & PLA_IRQ0_BIT) != 0) 	    // Interupt from Hall Sensor
 	//Figure out what the sequence is the hall sensor is at
 	{	
 		distance++;
 	   	VTemp++; //increment the velocity counter
 		UpdateMotor();
 
-
-		if (count <1000) {
+		if (count < 1000) { //keep for protection against stopping during the completion of a lap
 	    	count++;
 		}
-		
 	}
 	else if((IRQSTA & RTOS_TIMER_BIT) != 0) { //Timer 0 interrupt
 		Velocity = VTemp; //write the velocity value
@@ -426,8 +416,8 @@ void My_IRQ_Function() {				// Interupt service Routine
 		T0CLRI = 1; //Clear the interupt
 		T0LD = 0xFFFF; //reload a new value
 
-        newcount++;  
-		if (newcount >=17)
+        newcount++; //used for the button to change mode (prevent multiple switching)
+		if (newcount >= 17)
 		{
 			newcount= 0;
 			IRQEN |= XIRQ0_BIT;
@@ -508,8 +498,6 @@ void FSequence1() {		  // AB	  0H =PWM  1H =X   2H = X
   	/*3.4 3.5*/
 	Two_H_to_GPIO();
 	Two_L_to_GPIO();
-	
-	
 }
 
 void FSequence2() {	       // AC	  0H =PWM  1H =X   2H = X
@@ -536,12 +524,10 @@ void FSequence3() {     // BC   	  0H =X    1H =PWM   2H = X
 	/*3.4 3.5*/
 	Two_H_to_GPIO();
 	PWM_2_L();
-
 }
 
 void FSequence4() {// BA  	  0H =X    1H =PWM   2H = X
 	UpdateSpeed();		  //  0L =PWM    1L =X    2L = X	
-
 	/* 3.0  3.1 */
 	Zero_H_to_GPIO();                     
     PWM_0_L();
@@ -551,12 +537,10 @@ void FSequence4() {// BA  	  0H =X    1H =PWM   2H = X
 	/*3.4 3.5*/
 	Two_H_to_GPIO();
 	Two_L_to_GPIO();
-
 }
 
 void FSequence5() {// CA  	  0H =X     1H =X  2H = PWM 
 	UpdateSpeed();		  //  0L =PWM    1L =X    2L = X	
-
 	/* 3.0  3.1 */
 	Zero_H_to_GPIO();                     
     PWM_0_L();
@@ -566,22 +550,18 @@ void FSequence5() {// CA  	  0H =X     1H =X  2H = PWM
 	/*3.4 3.5*/
 	PWM_2_H();
 	Two_L_to_GPIO();
-
 }
 void FSequence6() {// CB  	  0H =X     1H =X  2H = PWM 
 	UpdateSpeed();		  //  0L =X    1L =PWM   2L = X	
-
 	/* 3.0  3.1 */
 	Zero_H_to_GPIO();                     
     Zero_L_to_GPIO();
     /*3.2 3.3*/
 	One_H_to_GPIO(); 
 	PWM_1_L();
-	
 	/*3.4 3.5*/
 	PWM_2_H();
 	Two_L_to_GPIO();
-
 }
 
 //If illegal state, slow the motor down
@@ -626,9 +606,6 @@ void Two_H_to_GPIO() {
 	GP3CON &= 0xFFFCFFFF;
 	GP3DAT |= 0x10000000;
 	GP3DAT &= 0xFFEFFFFF;
-	//GP3CON &= 0xFFFCFFFF;
-	//GP3DAT |= 0x10000000;
-	//GP3DAT |= ~(0xFFEFFFFF);
 }
 
 void Two_L_to_GPIO() {
@@ -645,26 +622,18 @@ void PWM_0_H() {
 }
 
 void PWM_0_L() {
-//	GP3CON &= 0xFFFFFFDF;
-//	GP3CON |= 0x00000010;
-
     GP3CON &= 0xFFFFFFCF;	 //3.0 is High side . It's supposed to be pull HIGH in order to turn it off
 	GP3DAT |= 0x02000000;
 	GP3DAT |= 0x20000;
-
 }
 
 void PWM_1_H() {
 	GP3CON &= 0xFFFFFDFF;
 	GP3CON |= 0x00000100;
 	PWMEN = 0x080;
-
 }
 
 void PWM_1_L() {
-	//GP3CON &= 0xFFFFDFFF;
-	//GP3CON |= 0x00001000; PWM on 3.2
-
 	GP3CON &= 0xFFFFCFFF;	 //3.3 to GPIO  
 	GP3DAT |= 0x08000000;	  // 3.3 to Output
 	GP3DAT |= ~(0xFFF7FFFF);  // 3.3 to high 
@@ -677,8 +646,6 @@ void PWM_2_H() {
 }
 
 void PWM_2_L() {
-	//GP3CON &= 0xFFDFFFFF;
-	//GP3CON |= 0x00100000; // PWM 
 	GP3CON &= 0xFFCFFFFF;  // 3.5 to GPIO
 	GP3DAT |= 0x20000000; //  3.5 output 
 	GP3DAT |= ~(0xFFDFFFFF);// 3.5 output high 
@@ -730,9 +697,6 @@ void senddata(short to_send) {
 	COMTX = hex2ascii (to_send & 0x0F);	
 	//	GP1CON	= save_GP1CON; 				
 }
-
-
-
 
 char hex2ascii(char toconv) {
 	if (toconv<0x0A) {
