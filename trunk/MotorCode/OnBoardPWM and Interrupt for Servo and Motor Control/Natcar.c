@@ -213,17 +213,12 @@ int main (void)  {
 				FAST2 -= 3;
 				FAST3 -= 3;
 				FAST4 -= 3;
-				//SlowDownThreshold -= 50;
-				SpeedUpThreshold += 25;
+				//SlowDownThreshold -= 50; //take out to protect car from enough distance to stop
+				SpeedUpThreshold += 25; //increase place when we start to speed up
 				loop++;
 			}
 			Motor_PWM_relative_duty_cycle = FAST;
-
-
-			//Curved = 0;
-			//Dir = 1;
 		}
-		//else if(Mode == RACING) {
 		if(Mode == CONSTANT && distance >= 1) {
 			Motor_PWM_relative_duty_cycle = CONSTFAST; //Constant speed fast. We will update this every lap
 		}
@@ -266,7 +261,7 @@ int main (void)  {
 			if(distance >= (LFinish[PlaybackPointer] - SlowDownThreshold)) { //entering curve
 				if(Velocity >= VCrash) {
 					Dir = 0;
-					GP2DAT |= 0x70400000; //Indicate that we are stopping
+					GP2DAT |= 0x40400000; //Indicate that we are stopping
 				}
 				else {
 					Dir = 1;
@@ -372,7 +367,7 @@ int main (void)  {
   		   }
 		if (!(T2VAL%18))
 		{
-			//sd(RecordPointer, PlaybackPointer, RecordCrossing, PlaybackCrossing, Motor_PWM_relative_duty_cycle, Velocity);
+			sd(RecordPointer, PlaybackPointer, RecordCrossing, PlaybackCrossing, Motor_PWM_relative_duty_cycle, Velocity);
 
 	 	}
 	}
@@ -426,16 +421,16 @@ void My_IRQ_Function() {				// Interupt service Routine
 	else if((IRQSTA & XIRQ0_BIT) != 0) {
 	    IRQCLR |= XIRQ0_BIT; //Clear interrupt
 		if(Mode == RACING) {
-			GP2DAT &= ~(0x70200000);
+			GP2DAT &= ~(0x70300000); //turn off lights to indicate the Constant mode
 			Mode = CONSTANT; //switch mode
 			//Motor_PWM_relative_duty_cycle = CONSTFAST; //Constant speed fast. We will update this every lap
 			//GP2SET = 0xFF30FFFF; //indicator
-			GP2DAT |= 0x70300000; //Configure the default Learning mode and also set the 3 pins to be output 
+			//GP2DAT |= 0x70300000; //Configure the default Learning mode and also set the 3 pins to be output 
 		}
 		else if(Mode == LEARNING) {
-			GP2DAT &= ~(0x70100000);
+			//GP2DAT &= ~(0x70100000); // turn off 
 			if((RecordCrossing % 2) || RecordPointer == 0) {
-				GP2DAT |= 0x70400000; //Indicate that we are stopping
+				GP2DAT |= 0x40400000; //Indicate that we are stopping (Error in this case)
 			}
 			Mode = RACING;
 			if(distance > 1000) {
@@ -444,14 +439,14 @@ void My_IRQ_Function() {				// Interupt service Routine
 			} 
 			//Motor_PWM_relative_duty_cycle = FAST;  //fast speed for racing mode
 			//GP2SET = 0xFF20FFFF;
-			GP2DAT |= 0x70200000; //Configure the default Learning mode and also set the 3 pins to be output
+			GP2DAT |= 0x70300000; //Configure the default Learning mode and also set the 3 pins to be output
 		}
 		else if(Mode == CONSTANT) {
-			GP2DAT &= ~(0x70300000);
+			GP2DAT &= ~(0x70300000); //turn off light indicating Racing mode
 			Mode = RACING;
 			//Motor_PWM_relative_duty_cycle = SLOW; //Learning speed 
 			//GP2SET = 0xFF10FFFF;
-			GP2DAT |= 0x70200000; //Configure the default Learning mode and also set the 3 pins to be output
+			GP2DAT |= 0x70300000; //All lights on means Racing mode
 			//RecordCrossing = 0; //reset to learn again
 			//RecordPointer = 0;
 		}
