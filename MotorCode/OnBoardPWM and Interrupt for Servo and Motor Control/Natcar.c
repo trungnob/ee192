@@ -259,6 +259,7 @@ int main (void)  {
 			}
 
 			if(distance >= (LFinish[PlaybackPointer] - SlowDownThreshold)) { //entering curve
+				GP2DAT &= 0xFFCFFFFF; //turn it off
 				if(Velocity >= VCrash) {
 					Dir = 0;
 					GP2DAT |= 0x40400000; //Indicate that we are stopping
@@ -289,7 +290,7 @@ int main (void)  {
 			}*/
 			//Exiting curve/Entering Straight Line
 			else if(distance >= (LStart[PlaybackPointer] - SpeedUpThreshold) && distance < (LFinish[PlaybackPointer] - SlowDownThreshold)) {
-				GP2DAT &= 0xFFBFFFFF; //turn it off
+				GP2DAT |= 0x70200000; //Indicate the straight away
 				if(LStart[PlaybackPointer] - LFinish[PlaybackPointer] >= 2000) {
 					Variable = 3;
 				}
@@ -368,7 +369,6 @@ int main (void)  {
 		if (!(T2VAL%18))
 		{
 			sd(RecordPointer, PlaybackPointer, RecordCrossing, PlaybackCrossing, Motor_PWM_relative_duty_cycle, Velocity);
-
 	 	}
 	}
 }						 
@@ -421,7 +421,7 @@ void My_IRQ_Function() {				// Interupt service Routine
 	else if((IRQSTA & XIRQ0_BIT) != 0) {
 	    IRQCLR |= XIRQ0_BIT; //Clear interrupt
 		if(Mode == RACING) {
-			GP2DAT &= ~(0x70300000); //turn off lights to indicate the Constant mode
+			GP2DAT &= ~(0x70100000); //turn off lights to indicate the Constant mode
 			Mode = CONSTANT; //switch mode
 			//Motor_PWM_relative_duty_cycle = CONSTFAST; //Constant speed fast. We will update this every lap
 			//GP2SET = 0xFF30FFFF; //indicator
@@ -439,14 +439,14 @@ void My_IRQ_Function() {				// Interupt service Routine
 			} 
 			//Motor_PWM_relative_duty_cycle = FAST;  //fast speed for racing mode
 			//GP2SET = 0xFF20FFFF;
-			GP2DAT |= 0x70300000; //Configure the default Learning mode and also set the 3 pins to be output
+			GP2DAT |= 0x70100000; //Configure the default Learning mode and also set the 3 pins to be output
 		}
 		else if(Mode == CONSTANT) {
-			GP2DAT &= ~(0x70300000); //turn off light indicating Racing mode
+			GP2DAT &= ~(0x70100000); //turn off light indicating Racing mode
 			Mode = RACING;
 			//Motor_PWM_relative_duty_cycle = SLOW; //Learning speed 
 			//GP2SET = 0xFF10FFFF;
-			GP2DAT |= 0x70300000; //All lights on means Racing mode
+			GP2DAT |= 0x70100000; //All lights on means Racing mode
 			//RecordCrossing = 0; //reset to learn again
 			//RecordPointer = 0;
 		}
