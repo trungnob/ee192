@@ -171,7 +171,7 @@ int main (void)  {
 	GP2CON &= 0xF000FFFF; //Configure for LED to show what mode we are in and to see if the step detection works
     GP3CON |= 0x03000000;
 
-	GP2DAT |= 0x70100000; //Configure the default Learning mode and also set the 3 pins to be output
+	GP2DAT |= 0x70000000; //Configure the default Learning mode and also set the 3 pins to be output
 
 	//Configure Timer
 	T0CON = 0x84;

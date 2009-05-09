@@ -94,7 +94,7 @@ Options 1,0,0  // Target 'Natcar'
  ALDSCAT (.\ADuC702X.ld)
   OPTDL (SARM.DLL)(-cADuC70)(DARMAD.DLL)(-pADuC7026)(SARM.DLL)(-cADuC70)(TARMAD.DLL)(-pADuC7026)
   OPTDBG 45054,2,()()()()()()()()()() (BIN\AGDIRDI.DLL)()()()
- FLASH1 { 9,0,0,0,1,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0 }
+ FLASH1 { 9,0,0,0,1,0,0,0,2,16,0,0,0,0,0,0,0,0,0,0 }
  FLASH2 (BIN\AGDIRDI.DLL)
  FLASH3 ("" ())
  FLASH4 ()

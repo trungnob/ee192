@@ -1,1 +1,1 @@
--T .\ADuC702X.ld -mthumb-interwork -Wl -o testLearn.elf "natcar.o" "printf-stdarg.o" "serial.o" "startup.o" -nostartfiles
+-T .\ADuC702X.ld -mthumb-interwork -Wl -o testLearn.elf "natcar.o" "printf-stdarg.o" "serial.o" "startup.o" -lm
