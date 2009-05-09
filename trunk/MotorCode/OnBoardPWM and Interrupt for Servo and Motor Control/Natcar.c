@@ -12,10 +12,10 @@ int TurnThresholdUp = 2048 + 650; //default Value for turn right
 int TurnThresholdDown = 2048 - 650; //default Value for turn left
 int ThresholdDist = 800; //default value for the distance that we declare as straight
 int TrackLength = 1500000;//41800; //default for now as this value, but will change after we change once button is press
-int CrossingThreshold1 = 1200; //default value to be crossing
+int CrossingThreshold1 = 1000; //default value to be crossing
 int CrossingThreshold2 = 900; //has to go below 1000 before we declare it to be out of the crossing
 int ErrorThreshold = 500; //Threshold that will allow for correction of the step acting as a crossing
-int VCrash = 20; //speed which we will break
+int VCrash = 21; //speed which we will break
 int Variable = 1;
 
 int adc0Array[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -257,11 +257,11 @@ int main (void)  {
 		else if(Mode == RACING && TrackLength != 1500000) {
 			//Dir = 1;
 			if(EnteringCrossing == 0 && adc2 >= CrossingThreshold1) {	//Entering Crossing
-				if(distance < (Crossing[PlaybackCrossing] + ErrorThreshold) && distance > (Crossing[PlaybackCrossing] - ErrorThreshold)) {
+				//if(distance < (Crossing[PlaybackCrossing] + ErrorThreshold) && distance > (Crossing[PlaybackCrossing] - ErrorThreshold)) {
 					distance = Crossing[PlaybackCrossing]; //set the crossing
 					EnteringCrossing = 1; //set that we entered a crossing
 					PlaybackCrossing++;
-				}
+			//	}
 			}
 			else if(EnteringCrossing == 1 && adc2 < CrossingThreshold2) { //Exiting Crossing
 				EnteringCrossing = 0; //reset to indicate that we exited that crossing
@@ -378,7 +378,7 @@ int main (void)  {
   		   }
 		if (!(T2VAL%18))
 		{
-			sd(RecordPointer, PlaybackPointer, RecordCrossing, PlaybackCrossing, Motor_PWM_relative_duty_cycle, Velocity);
+			sd(RecordPointer, PlaybackPointer, RecordCrossing, PlaybackCrossing, adc2, EnteringCrossing);
 	 	}
 	}
 }						 
@@ -442,6 +442,7 @@ void My_IRQ_Function() {				// Interupt service Routine
 			if((RecordCrossing % 2) || RecordPointer == 0) {
 				GP2DAT |= 0x40400000; //Indicate that we are stopping (Error in this case)
 			}
+			EnteringCrossing = 0;
 			Mode = RACING;
 			if(distance > 1000) {
 				TrackLength = distance; //write the distance. Note this will override whatever previous value is in TrackLength
@@ -453,6 +454,7 @@ void My_IRQ_Function() {				// Interupt service Routine
 		}
 		else if(Mode == CONSTANT) {
 			GP2DAT &= ~(0x10100000); //turn off light indicating Racing mode
+			EnteringCrossing = 0;
 			Mode = RACING;
 			//Motor_PWM_relative_duty_cycle = SLOW; //Learning speed 
 			//GP2SET = 0xFF10FFFF;
