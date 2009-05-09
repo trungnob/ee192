@@ -15,7 +15,7 @@ int TrackLength = 1500000;//41800; //default for now as this value, but will cha
 int CrossingThreshold1 = 1200; //default value to be crossing
 int CrossingThreshold2 = 900; //has to go below 1000 before we declare it to be out of the crossing
 int ErrorThreshold = 500; //Threshold that will allow for correction of the step acting as a crossing
-int VCrash = 22; //speed which we will break
+int VCrash = 20; //speed which we will break
 int Variable = 1;
 
 int adc0Array[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -128,11 +128,11 @@ unsigned int Motor_PWM_relative_duty_cycle = 100;
 int desire_speed = 58; //Learning speed	 // Set speed .. Lower is higher ... kind of weird 
 int CONSTFAST = 47;
 int LEARNINGSPEED = 58;
-int FAST = 42;//42;
-int FAST2 = 38; //30;
-int FAST3 = 34; //27;
-int FAST4 = 31; //25;
-int SLOW = 46;//42;
+int FAST = 40;//42;//42;
+int FAST2 = 30;//38; //30;
+int FAST3 = 27;//34; //27;
+int FAST4 = 25;//31; //25;
+int SLOW = 42;//46;//42;
 int newcount = 0;
 unsigned DesiredSpeed = 16;
 int main (void)  {
@@ -186,6 +186,7 @@ int main (void)  {
 	loop = 0;
 	//jchar = getchar();
 	//sd(jchar,2,2,2,2,2);
+	Dir = 1; // default for learning/constant
 	while(1)
 	{	 	
 		if (Motor_PWM_relative_duty_cycle > desire_speed && count != count2){//((jchar-48) == 8) {
@@ -220,12 +221,16 @@ int main (void)  {
 			Motor_PWM_relative_duty_cycle = FAST;
 		}
 		if(Mode == CONSTANT && distance >= 1) {
+			Dir = 1;
 			Motor_PWM_relative_duty_cycle = CONSTFAST; //Constant speed fast. We will update this every lap
 		}
 
 		else if(Mode == LEARNING) {
+			Dir = 1;
 			Motor_PWM_relative_duty_cycle = LEARNINGSPEED; //keep it at a slow speed 
-			if((adc0 > TurnThresholdUp) || (adc0 < TurnThresholdDown)) { //Curved  
+			if((adc0 > TurnThresholdUp) || (adc0 < TurnThresholdDown)) { //Curved
+				GP2DAT &= 0xFFCFFFFF; //turn it off	Green
+				GP2DAT |= 0x40400000; //Indicate that we are stopping Red
 				if((distance - LStart[RecordPointer]) > ThresholdDist) { //Greater than the distance to be straight Line
 					LFinish[RecordPointer] = distance;
 					RecordPointer++; //increment the next slot;
@@ -235,6 +240,10 @@ int main (void)  {
 					LStart[RecordPointer] = distance; //Start of the straight Line
 				}
 			}
+			else {
+				GP2DAT &= 0xFFBFFFFF; //turn it off	  Red!
+				GP2DAT |= 0x20200000; //Indicate the straight away
+			} 
 			if(EnteringCrossing == 0 && adc2 >= CrossingThreshold1) {	//Entering Crossing
 				Crossing[RecordCrossing] = distance; //set the crossing
 				EnteringCrossing = 1; //set that we entered a crossing
@@ -246,7 +255,7 @@ int main (void)  {
 		}
 
 		else if(Mode == RACING && TrackLength != 1500000) {
-			Dir = 1;
+			//Dir = 1;
 			if(EnteringCrossing == 0 && adc2 >= CrossingThreshold1) {	//Entering Crossing
 				if(distance < (Crossing[PlaybackCrossing] + ErrorThreshold) && distance > (Crossing[PlaybackCrossing] - ErrorThreshold)) {
 					distance = Crossing[PlaybackCrossing]; //set the crossing
@@ -259,14 +268,14 @@ int main (void)  {
 			}
 
 			if(distance >= (LFinish[PlaybackPointer] - SlowDownThreshold)) { //entering curve
-				GP2DAT &= 0xFFCFFFFF; //turn it off
+				GP2DAT &= 0xFFCFFFFF; //turn it off	Green
 				if(Velocity >= VCrash) {
 					Dir = 0;
-					GP2DAT |= 0x40400000; //Indicate that we are stopping
+					GP2DAT |= 0x40400000; //Indicate that we are stopping Red
 				}
 				else {
 					Dir = 1;
-					GP2DAT &= 0xFFBFFFFF; //turn it off
+					GP2DAT &= 0xFFBFFFFF; //turn it off	  Red!
 				}
 				Motor_PWM_relative_duty_cycle = SLOW;
 				if(distance == (LStart[PlaybackPointer + 1] - SpeedUpThreshold)) {
@@ -290,6 +299,7 @@ int main (void)  {
 			}*/
 			//Exiting curve/Entering Straight Line
 			else if(distance >= (LStart[PlaybackPointer] - SpeedUpThreshold) && distance < (LFinish[PlaybackPointer] - SlowDownThreshold)) {
+			    Dir = 1;
 				GP2DAT |= 0x20200000; //Indicate the straight away
 				if(LStart[PlaybackPointer] - LFinish[PlaybackPointer] >= 2000) {
 					Variable = 3;
