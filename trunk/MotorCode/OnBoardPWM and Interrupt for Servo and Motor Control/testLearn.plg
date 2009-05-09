@@ -4,21 +4,10 @@
 <h1>µVision3 Build Log</h1>
 <h2>Project:</h2>
 C:\Natcar09\MotorCode\OnBoardPWM and Interrupt for Servo and Motor Control\Natcar.uv2
-Project File Date:  05/04/2009
+Project File Date:  05/08/2009
 
 <h2>Output:</h2>
-Build target 'Natcar'
-compiling Natcar.c...
-Natcar.c: In function `main':
-Natcar.c(141): warning: unused variable `i'
-Natcar.c(142): warning: unused variable `jchar'
-Natcar.c: In function `sendmessage':
-Natcar.c(733): warning: implicit declaration of function `sprintf'
-compiling printf-stdarg.c...
-compiling serial.c...
-assembling startup.s...
-arm-uclibc-as: unrecognized option `-gdwarf-2'
-linking...
-creating hex file...
-"testLearn.elf" - 0 Error(s), 3 Warning(s).
+Load "C:\\Natcar09\\MotorCode\\OnBoardPWM and Interrupt for Servo and Motor Control\\testLearn.ELF" 
+Load "C:\\Natcar09\\MotorCode\\OnBoardPWM and Interrupt for Servo and Motor Control\\testLearn.ELF" 
+Load "C:\\Natcar09\\MotorCode\\OnBoardPWM and Interrupt for Servo and Motor Control\\testLearn.ELF" 
 Load "C:\\Natcar09\\MotorCode\\OnBoardPWM and Interrupt for Servo and Motor Control\\testLearn.ELF" 

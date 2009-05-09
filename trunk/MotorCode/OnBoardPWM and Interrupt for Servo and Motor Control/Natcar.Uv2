@@ -84,7 +84,7 @@ Options 1,0,0  // Target 'Natcar'
  StopCode=3
  CustArgs ()
  LibMods ()
- ALDFLAG { 5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
+ ALDFLAG { 17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
  ALDTADR ()
  ALDDADR ()
  ALDBSSR ()
