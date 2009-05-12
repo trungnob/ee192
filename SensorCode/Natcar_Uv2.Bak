@@ -6,11 +6,11 @@ Target (Natcar), 0x0003 // Tools: 'ARM-GNU'
 Group (C Source File)
 Group (Source Group 1)
 
-File 1,1,<.\serial.c><serial.c> 0x47AA6834 
-File 1,1,<.\printf-stdarg.c><printf-stdarg.c> 0x44E21CF8 
-File 1,1,<.\Natcar.c><Natcar.c> 0x4835178B 
-File 2,2,<.\startup.s><startup.s> 0x4328259C 
-File 2,5,<.\Abstract.txt><Abstract.txt> 0x44E269D8 
+File 1,1,<.\serial.c><serial.c>
+File 1,1,<.\printf-stdarg.c><printf-stdarg.c>
+File 1,1,<.\Natcar.c><Natcar.c>
+File 2,2,<.\startup.s><startup.s>
+File 2,5,<.\Abstract.txt><Abstract.txt>
 
 
 Options 1,0,0  // Target 'Natcar'
@@ -53,6 +53,8 @@ Options 1,0,0  // Target 'Natcar'
  RunUsr 1 0 <>
  BrunUsr 0 0 <>
  BrunUsr 1 0 <>
+ CrunUsr 0 0 <>
+ CrunUsr 1 0 <>
  SVCSID <>
  GLFLAGS=1790
  GCPUTYP (ARM7TDMI)
@@ -61,6 +63,8 @@ Options 1,0,0  // Target 'Natcar'
  OCMARAM { 0,0,0,1,0,0,32,0,0 }
  OCMAROM { 1,0,0,8,0,0,248,0,0 }
  OCMXRAM { 0,0,0,0,0,0,0,0,0 }
+ OCMIRAM2 { 0,0,0,0,0,0,0,0,0 }
+ OCMIROM2 { 0,0,0,0,0,0,0,0,0 }
  ACCFLG { 65,48,32,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
  ACMISC ()
  ACDEFN ()
@@ -89,7 +93,7 @@ Options 1,0,0  // Target 'Natcar'
  ALDMISC ()
  ALDSCAT (.\ADuC702X.ld)
   OPTDL (SARM.DLL)(-cADuC70)(DARMAD.DLL)(-pADuC7020)(SARM.DLL)(-cADuC70)(TARMAD.DLL)(-pADuC7020)
-  OPTDBG 45054,2,()()()()()()()()()() (BIN\AGDIRDI.DLL)()()()
+  OPTDBG 45054,1,()()()()()()()()()() (BIN\AGDIRDI.DLL)()()()
  FLASH1 { 9,0,0,0,1,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0 }
  FLASH2 (BIN\AGDIRDI.DLL)
  FLASH3 ("" ())
