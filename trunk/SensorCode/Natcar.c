@@ -1,8 +1,7 @@
-//TODO: add in get off track fix
-
 #include <ADuC7020.h>
 #include <string.h>
 #include <stdio.h>
+
 unsigned int PWM_PERIOD_TOP = 0xF50C; 
 unsigned int PWM_duty_Time = 0xA1BB;
 unsigned int INT_relative_duty_cycle = 50;
@@ -275,19 +274,20 @@ void Serial_Setup(void){
 //ADC readings.  ServoFunction is our manual PWM function
 void My_IRQ_Function() {
 	if ((IRQSTA & RTOS_TIMER_BIT) == 0x4) {
-	   if (count < 3000)count++;
-	   else count =0 ;
+	   	if (count < 3000)
+	    	count++;
+	   	else 
+	   		count = 0;
 		T0CLRI = 0;
 		T0LD = 0x0ED6;
 		ADCrecord();
-	} else if ((IRQSTA & GP_TIMER_BIT) == 0x8) 			// Time 1 IRQ?
-	{
+	} 
+	else if ((IRQSTA & GP_TIMER_BIT) == 0x8) {			// Time 1 IRQ?
 		T1CLRI = 0;
 		//T1LD = 0x12E;
 		T1LD = 0x1;
 		feedbackControl();
 	}
-	return ;
 }
 
 //Allows sending of data
@@ -375,8 +375,7 @@ void ADCrecord(void) {
 }
 
 //Feedback control method.  It first checks the error case that the car is off
-//track.  Then it updates the servo, and motor based off of a linearized function.
-//This will be made into a lookup table soon. 
+//track.  Then it updates the servo based off of a linearized function.
 void feedbackControl(void) {
 	servoFeedbackTemp0 = adc1-adc0;
 
@@ -431,7 +430,8 @@ void feedbackControl(void) {
 		}
 
 	} else
-	*/ if (adc2 < ERROR_CORRECTION_THRESHOLD) {
+	*/ 
+	if (adc2 < ERROR_CORRECTION_THRESHOLD) {
 		if (last_servo_direction == 0) {
 			updateServo(SERVO_HARD_RIGHT);
 		} else if (last_servo_direction == 1) {
@@ -466,8 +466,8 @@ void feedbackControl(void) {
 			}
 	//	}
 
-		KD_temp = (6*(last_Error[2]-servoFeedbackTemp0) + 2*(last_Error[1]-last_Error[0]))/20;
-
+		KD_temp = (6*(last_Error[2]-servoFeedbackTemp0) + 2*(last_Error[1]-last_Error[0]))/20; 
+		//KD_temp = ((last_Error[2]-servoFeedbackTemp0)<<2 + (last_Error[2]-servoFeedbackTemp0+last_Error[1]-last_Error[0])<<1 )/20; 
 		for (feedbackControlTemp = 0; feedbackControlTemp < 81; feedbackControlTemp++) {
 			if (KD_temp <= KD_THRESHOLD_ARRAY[feedbackControlTemp]) {
 				feedbackControl_KD_term = SERVO_OFFSET_TABLE[feedbackControlTemp];
