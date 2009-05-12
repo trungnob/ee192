@@ -227,6 +227,9 @@ float Servo_duty_cycle=71;
 //Main function initializes everything
 int main (void) {
 	/*Initialization code begins here */
+	GP2CON &= 0xFFFFFFF0;
+	GP2DAT &= (~(0x01000000)); //config 2.0 as input
+	//GP4DAT |=0x10100000; ; //setup 4.4 as an output  and out put 1;
 	Serial_Setup();
 	sendmessage("\nNatcar\n Version 7.5\n");
 	DAC0CON = 0x12;//Enable DAC on DAC0 (pin 4 ) ;
@@ -239,6 +242,7 @@ int main (void) {
 	ADCinit();
 	IRQEN |= GP_TIMER_BIT;		//	Enable Timer1 IRQ
 	IRQEN |= RTOS_TIMER_BIT;			//  Enable ADC_BIT IRQ			 1
+
 	while(1) {	 
  		if (count==0) {
 			sd();			 
@@ -538,9 +542,9 @@ void INTinit(void) {
 {
   	char m[214];
  	int l;
-
+	char GPIO20=(GP2DAT)&(0x00000001);
   	memset(m,'\0',214);
-  	l=sprintf(m,"%d %d %d %d %d %d %d\n", adc1-adc0, adc0, adc1, adc2, adc3, feedbackSum, last_servo_direction);// INT_relative_duty_cycle, PWMCH0); //adc1-adc0
+  	l=sprintf(m,"%d %d %d %d %d %d %d\n", adc1-adc0, adc0, adc1, adc2, adc3, feedbackSum, GPIO20);// INT_relative_duty_cycle, PWMCH0); //adc1-adc0
 	write(0,m,l);
 
  }
