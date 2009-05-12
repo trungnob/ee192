@@ -1,4 +1,4 @@
-			 
+			 			  	
 #include <ADuC7026.h>
 #include <string.h>
 //#include <stdio.h>
@@ -168,11 +168,11 @@ int main (void)  {
    	IRQ = My_IRQ_Function;
 	IRQEN = PLA_IRQ0_BIT | RTOS_TIMER_BIT | XIRQ0_BIT;
    	GP1CON |= 0x03003000;
-	GP2CON &= 0xF000FFFF; //Configure for LED to show what mode we are in and to see if the step detection works
+	GP2CON &= 0xF000FFF0; //Configure for LED to show what mode we are in and to see if the step detection works
     GP3CON |= 0x03000000;
 
 	GP2DAT |= 0x70000000; //Configure the default Learning mode and also set the 3 pins to be output
-
+	GP2DAT |= 0x01000000;
 	//Configure Timer
 	T0CON = 0x84;
 	T0LD = 0xFFFF;
@@ -247,9 +247,11 @@ int main (void)  {
 			if(EnteringCrossing == 0 && adc2 >= CrossingThreshold1) {	//Entering Crossing
 				Crossing[RecordCrossing] = distance; //set the crossing
 				EnteringCrossing = 1; //set that we entered a crossing
+				GP2DAT |= 0x01010000; //send to servo control 
 				RecordCrossing++;
 			}
 			else if(EnteringCrossing == 1 && adc2 < CrossingThreshold2) { //Exiting Crossing
+				GP2DAT &= 0xFFFEFFFF; //send to servo control .
 				EnteringCrossing = 0; //reset to indicate that we exited that crossing
 			} 
 		}
@@ -261,10 +263,12 @@ int main (void)  {
 					distance = Crossing[PlaybackCrossing]; //set the crossing
 					EnteringCrossing = 1; //set that we entered a crossing
 					PlaybackCrossing++;
+					GP2DAT |= 0x01010000; //send to servo control 
 			//	}
 			}
 			else if(EnteringCrossing == 1 && adc2 < CrossingThreshold2) { //Exiting Crossing
 				EnteringCrossing = 0; //reset to indicate that we exited that crossing
+				GP2DAT &= 0xFFFEFFFF; //send to servo control 
 			}
 
 			if(distance >= (LFinish[PlaybackPointer] - SlowDownThreshold)) { //entering curve
