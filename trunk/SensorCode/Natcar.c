@@ -153,7 +153,7 @@ signed	int last_Error[] = { 0, 0, 0 };
 
 signed	int feedbackSum = 0;
 
-signed 	int	ERROR_CORRECTION_THRESHOLD = 450;
+signed 	int	ERROR_CORRECTION_THRESHOLD = 250;
 signed 	int LINE_CROSSING_THRESHOLD = 1200;
 
 /*	Table is used to determine relative duty cycle.
@@ -278,7 +278,7 @@ void Serial_Setup(void){
 //ADC readings.  ServoFunction is our manual PWM function
 void My_IRQ_Function() {
 	if ((IRQSTA & RTOS_TIMER_BIT) == 0x4) {
-	   	if (count < 3000)
+	   	if (count < 300)
 	    	count++;
 	   	else 
 	   		count = 0;
@@ -435,13 +435,16 @@ void feedbackControl(void) {
 
 	} else
 	*/ 
-	if (adc2 < ERROR_CORRECTION_THRESHOLD) {
-		if (last_servo_direction == 0) {
-			updateServo(SERVO_HARD_RIGHT);
-		} else if (last_servo_direction == 1) {
-			updateServo(SERVO_HARD_LEFT);
-		}
-	} else {
+	if ((GP2DAT)&(0x00000001)) {  //if we see crossing	"Higher Priority because we don't want to turn max
+		//updateServo(SERVO_CENTER + feedbackSum);  //keep the previous direction
+		KP_STRAIGHT_INVERSE = 53;
+		KP_INVERSE = 50;
+	}
+	else {
+		KP_STRAIGHT_INVERSE = 43;
+		KP_INVERSE = 40;
+	}
+	//else {
 		
 		//if straight
 	/*	if ((GP1DAT & 0x10) == 0x10) {
@@ -481,12 +484,20 @@ void feedbackControl(void) {
 
 		feedbackSum = feedbackControl_KP_term - feedbackControl_KD_term;
 		updateServo(SERVO_CENTER + feedbackSum);
-		if (feedbackControl_KP_term < 0) {
+		if (feedbackControl_KP_term < -3) {
 			last_servo_direction = 0;
-		} else if (feedbackControl_KP_term > 0) {
+		} else if (feedbackControl_KP_term > 3) {
 			last_servo_direction = 1;
 		}
-	}
+	//}
+
+	if (adc2 < ERROR_CORRECTION_THRESHOLD) {
+		if (last_servo_direction == 0) {
+			updateServo(SERVO_HARD_RIGHT);
+		} else if (last_servo_direction == 1) {
+			updateServo(SERVO_HARD_LEFT);
+		}
+	} 
 
 	last_Error[2] = last_Error[1];
 	last_Error[1] = last_Error[0];
@@ -544,7 +555,7 @@ void INTinit(void) {
  	int l;
 	char GPIO20=(GP2DAT)&(0x00000001);
   	memset(m,'\0',214);
-  	l=sprintf(m,"%d %d %d %d %d %d %d\n", adc1-adc0, adc0, adc1, adc2, adc3, feedbackSum, GPIO20);// INT_relative_duty_cycle, PWMCH0); //adc1-adc0
+  	l=sprintf(m,"%d %d %d %d %d %d %d\n", adc1-adc0, adc0, adc1, adc2, adc3, feedbackControl_KP_term, GPIO20);// INT_relative_duty_cycle, PWMCH0); //adc1-adc0
 	write(0,m,l);
 
  }
