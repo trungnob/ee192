@@ -8,8 +8,8 @@ int LEARNING = 0;
 int CONSTANT = 2; //constant speed mode
 int SlowDownThreshold = 500; //default Distance to slow down
 int SpeedUpThreshold = 100; //default Distance to speed up
-int TurnThresholdUp = 2048 + 650; //default Value for turn right
-int TurnThresholdDown = 2048 - 650; //default Value for turn left
+int TurnThresholdUp = 1900 + 500; //default Value for turn right
+int TurnThresholdDown = 1900 - 500; //default Value for turn left
 int ThresholdDist = 800; //default value for the distance that we declare as straight
 int TrackLength = 1500000;//41800; //default for now as this value, but will change after we change once button is press
 int CrossingThreshold1 = 1000; //default value to be crossing
@@ -382,7 +382,7 @@ int main (void)  {
   		   }
 		if (!(T2VAL%18))
 		{
-			sd(RecordPointer, PlaybackPointer, RecordCrossing, PlaybackCrossing, adc2, EnteringCrossing);
+			sd(RecordPointer, PlaybackPointer, RecordCrossing, PlaybackCrossing, adc0, EnteringCrossing);
 	 	}
 	}
 }						 
