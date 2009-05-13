@@ -138,8 +138,6 @@ unsigned DesiredSpeed = 16;
 int main (void)  {
  	memset(LStart, 0, 100);
  	memset(LFinish, 0, 100);
-    int i = 0;
-	unsigned char jchar = 0x30;
 	Serial_Setup();//setup serial code with 115200kbps 
 	sendmessage("\nNatcar Group2  \n");
 	sendmessage("Initialize timer...");
@@ -257,14 +255,21 @@ int main (void)  {
 		}
 
 		else if(Mode == RACING && TrackLength != 1500000) {
-			//Dir = 1;
 			if(EnteringCrossing == 0 && adc2 >= CrossingThreshold1) {	//Entering Crossing
-				//if(distance < (Crossing[PlaybackCrossing] + ErrorThreshold) && distance > (Crossing[PlaybackCrossing] - ErrorThreshold)) {
-					distance = Crossing[PlaybackCrossing]; //set the crossing
-					EnteringCrossing = 1; //set that we entered a crossing
+			//if(distance < (Crossing[PlaybackCrossing] + ErrorThreshold) && distance > Crossing[PlaybackCrossing]) {
+				if(distance > (Crossing[PlaybackCrossing + 1])) { //If skip one crossing
+					distance = Crossing[PlaybackCrossing + 1]; //set the crossing
+					PlaybackCrossing = PlaybackCrossing + 2; //we know that we skipped a crossing
+				}
+				else if(distance > Crossing[PlaybackCrossing]) { //If don't skip any crossing
+					distance = Crossing[PlaybackCrossing];
 					PlaybackCrossing++;
-					GP2DAT |= 0x01010000; //send to servo control 
-			//	}
+				}
+				else { //If crossing too close each other and we messed up counting on crossing
+					distance = Crossing[PlaybackCrossing - 1];
+				}
+				EnteringCrossing = 1; //set that we entered a crossing
+				GP2DAT |= 0x01010000; //send to servo control 
 			}
 			else if(EnteringCrossing == 1 && adc2 < CrossingThreshold2) { //Exiting Crossing
 				EnteringCrossing = 0; //reset to indicate that we exited that crossing
@@ -745,14 +750,14 @@ void plaInitialize() {
 
 void sendmessage(char* string) {
 	char message[128];
-	memset(message,'\0',128);
-	sprintf(message,string) ;
-	write(0,message,sizeof(message));
+	memset(message, '\0', 128);
+	sprintf(message, string) ;
+	write(0,message, sizeof(message));
 }
 
 void ADCpoweron(int time){
 	ADCCON = 0x20;	 					// power-on the ADC
-	while (time >=0)	  				// wait for ADC to be fully powered on
+	while(time >=0)	  				// wait for ADC to be fully powered on
     time--;
 }
 
@@ -763,20 +768,19 @@ void ADCinit(void) {
 	ADCCON = 0x4E4;					// start conversion on timer 0
 									// ADC Config: fADC/2, acq. time = 2 clocks => ADC Speed = 1MSPS	
 	REFCON = 0x01;					// connect internal 2.5V reference to VREF pin
-	
 }
   
 void sd(int data,int data2,int data3,int data4,int data5,int data6) {
   	char m[256];
   	int l;
 
-  	memset(m,'\0',256);
-  	l=sprintf(m,"%d %d  %d %d %d %d\n" ,data,data2,data3,data4,data5,data6);
-  	write(0,m,l);
+  	memset(m, '\0', 256);
+  	l=sprintf(m, "%d %d %d %d %d %d\n", data, data2, data3, data4, data5, data6);
+  	write(0, m, l);
  }
 void UpdateMotor() {// this function update the motor state base on the Halls state . 
 //Change back to GPIO input to figure out what state it's in 
- 	timer2=T2VAL;
+ 	timer2 = T2VAL;
 	GP1CON &= 0xFFFFCFFF; //configure 1.3, 1.6 to be GPIO  ...  Hall 1
 	GP1CON &= 0xFCFFFFFF; //configure 1.6 to be GPI0  ...  Hall 2 // change to 1.6	  
 	GP3CON &= 0xFCFFFFFF; //configure 3.6 to be GPIO  ...  Hall 
