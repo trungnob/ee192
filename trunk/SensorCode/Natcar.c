@@ -436,12 +436,11 @@ void feedbackControl(void) {
 	} else
 	*/ 
 	if ((GP2DAT)&(0x00000001)) {  //if we see crossing	"Higher Priority because we don't want to turn max
-		//updateServo(SERVO_CENTER + feedbackSum);  //keep the previous direction
-		KP_STRAIGHT_INVERSE = 53;
-		KP_INVERSE = 50;
+		KP_STRAIGHT_INVERSE = 63; // reduce KP constant
+		KP_INVERSE = 60;
 	}
 	else {
-		KP_STRAIGHT_INVERSE = 43;
+		KP_STRAIGHT_INVERSE = 43; //revert it back
 		KP_INVERSE = 40;
 	}
 	//else {
@@ -474,7 +473,6 @@ void feedbackControl(void) {
 	//	}
 
 		KD_temp = (6*(last_Error[2]-servoFeedbackTemp0) + 2*(last_Error[1]-last_Error[0]))/20; 
-		//KD_temp = ((last_Error[2]-servoFeedbackTemp0)<<2 + (last_Error[2]-servoFeedbackTemp0+last_Error[1]-last_Error[0])<<1 )/20; 
 		for (feedbackControlTemp = 0; feedbackControlTemp < 81; feedbackControlTemp++) {
 			if (KD_temp <= KD_THRESHOLD_ARRAY[feedbackControlTemp]) {
 				feedbackControl_KD_term = SERVO_OFFSET_TABLE[feedbackControlTemp];
