@@ -6,16 +6,16 @@
 int RACING = 1;
 int LEARNING = 0;
 int CONSTANT = 2; //constant speed mode
-int SlowDownThreshold = 500; //default Distance to slow down
-int SpeedUpThreshold = 100; //default Distance to speed up
+int SlowDownThreshold = 600; //default Distance to slow down
+int SpeedUpThreshold = 200; //default Distance to speed up
 int TurnThresholdUp = 1900 + 500; //default Value for turn right
 int TurnThresholdDown = 1900 - 500; //default Value for turn left
 int ThresholdDist = 800; //default value for the distance that we declare as straight
 int TrackLength = 1500000;//41800; //default for now as this value, but will change after we change once button is press
-int CrossingThreshold1 = 1000; //default value to be crossing
+int CrossingThreshold1 = 1100; //default value to be crossing
 int CrossingThreshold2 = 900; //has to go below 1000 before we declare it to be out of the crossing
 int ErrorThreshold = 500; //Threshold that will allow for correction of the step acting as a crossing
-int VCrash = 21; //speed which we will break
+int VCrash = 20; //speed which we will break
 int Variable = 1;
 
 int adc0Array[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -125,16 +125,20 @@ unsigned long speed = 0x0100;
 unsigned int Motor_PWM_PERIOD_TOP = 0x200;//0x0200;
 unsigned int Motor_PWM_tempVar = 0x0100;
 unsigned int Motor_PWM_relative_duty_cycle = 100;
-int desire_speed = 58; //Learning speed	 // Set speed .. Lower is higher ... kind of weird 
-int CONSTFAST = 47;
-int LEARNINGSPEED = 58;
-int FAST = 40;//42;//42;
-int FAST2 = 30;//38; //30;
-int FAST3 = 27;//34; //27;
+void save(unsigned short int addr, unsigned char data);
+unsigned short load(unsigned short int addr);
+int desire_speed = 54; //Learning speed	 // Set speed .. Lower is higher ... kind of weird 
+int CONSTFAST = 49;
+int LEARNINGSPEED = 55;
+int FAST = 25;//42;//42;
+int FAST2 = 25;//38; //30;
+int FAST3 = 25;//34; //27;
 int FAST4 = 25;//31; //25;
-int SLOW = 42;//46;//42;
+int SLOW = 46;//46;//42;
 int newcount = 0;
 unsigned DesiredSpeed = 16;
+unsigned char ERROR;
+unsigned char status;
 int main (void)  {
  	memset(LStart, 0, 100);
  	memset(LFinish, 0, 100);
@@ -147,6 +151,7 @@ int main (void)  {
 	T2LD=0;
 	T2CON=0x188;
 	DAC3CON = 0x12; // DAC enable
+	FEEMOD = 0x8;				// bit 3 should be set to allow erase/write command
 	sendmessage("Done\n");
 	sendmessage("Intialize PLA ...");
 	plaInitialize();
@@ -257,11 +262,11 @@ int main (void)  {
 		else if(Mode == RACING && TrackLength != 1500000) {
 			if(EnteringCrossing == 0 && adc2 >= CrossingThreshold1) {	//Entering Crossing
 			//if(distance < (Crossing[PlaybackCrossing] + ErrorThreshold) && distance > Crossing[PlaybackCrossing]) {
-				if(distance > (Crossing[PlaybackCrossing + 1])) { //If skip one crossing
+				if((PlaybackCrossing + 1 < RecordCrossing) && (distance + 100 >= (Crossing[PlaybackCrossing + 1]))) { //If skip one crossing
 					distance = Crossing[PlaybackCrossing + 1]; //set the crossing
 					PlaybackCrossing = PlaybackCrossing + 2; //we know that we skipped a crossing
 				}
-				else if(distance > Crossing[PlaybackCrossing]) { //If don't skip any crossing
+				else if(distance + 100 >= Crossing[PlaybackCrossing]) { //If don't skip any crossing
 					distance = Crossing[PlaybackCrossing];
 					PlaybackCrossing++;
 				}
@@ -320,13 +325,13 @@ int main (void)  {
 					Variable = 1;
 				}
 
-				if(distance <= (LStart[PlaybackPointer] - SpeedUpThreshold) + 50*Variable) {
+				if(distance <= (LStart[PlaybackPointer] - SpeedUpThreshold) + 100*Variable) {
 					Motor_PWM_relative_duty_cycle = FAST4;
 				}
-				else if(distance <= (LStart[PlaybackPointer] - SpeedUpThreshold) + 100*Variable) {
+				else if(distance <= (LStart[PlaybackPointer] - SpeedUpThreshold) + 150*Variable) {
 					Motor_PWM_relative_duty_cycle = FAST3;
 				}
-				else if(distance <= (LStart[PlaybackPointer] - SpeedUpThreshold) + 150*Variable) {
+				else if(distance <= (LStart[PlaybackPointer] - SpeedUpThreshold) + 200*Variable) {
 					Motor_PWM_relative_duty_cycle = FAST2;
 				}
 				else {
@@ -364,7 +369,7 @@ int main (void)  {
 			adc = 2;
 		}
 		else if(adc == 2) {
-			DAC3DAT=ADCDAT;
+			// DAC3DAT=ADCDAT; send to other CPU
 			adc2Array[adcArrayCounter] = ADCDAT >> 16;
 			adc2 = (adc2Array[0] + adc2Array[1] + adc2Array[2] + adc2Array[3] + adc2Array[4] + adc2Array[5] + adc2Array[6] + adc2Array[7] + adc2Array[8] + adc2Array[9] + adc2Array[10] + adc2Array[11] + adc2Array[12] + adc2Array[13] + adc2Array[14] + adc2Array[15]) >> 4;
 			ADCCP = 0x03;
@@ -385,9 +390,9 @@ int main (void)  {
 				adcArrayCounter = 0;
 			} 
   		   }
-		if (!(T2VAL%18))
+		if (!(T2VAL%25))//18))
 		{
-			sd(RecordPointer, PlaybackPointer, RecordCrossing, PlaybackCrossing, adc0, EnteringCrossing);
+			sd(RecordPointer, Crossing[PlaybackCrossing], RecordCrossing, PlaybackCrossing, distance, adc0);
 	 	}
 	}
 }						 
@@ -859,4 +864,22 @@ void UpdateMotor() {// this function update the motor state base on the Halls st
 	} 
 	GP1CON |= 0x03003000; // change back to PLA input 
     GP3CON |= 0x03000000;  // change back to PLA input
+}
+
+unsigned short load(unsigned short int addr){
+	FEEADR = addr;
+	FEECON = 0x01;				// single read command
+	status = FEESTA&0x03;
+	while (!(status)) status = FEESTA&0x03;
+	return (FEEDAT);		
+} 
+
+
+void save(unsigned short int addr, unsigned char data){
+	FEEADR = addr;				// set data address
+	FEEDAT = data;				// set data value
+	FEECON = 0x02;				// single Write command
+	status = FEESTA&0x03;
+	while (!(status)) status = FEESTA&0x03;
+	return;
 }

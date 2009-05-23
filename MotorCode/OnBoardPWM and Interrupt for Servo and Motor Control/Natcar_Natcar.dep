@@ -1,5 +1,5 @@
 Dependencies for Project 'Natcar', Target 'Natcar': (DO NOT MODIFY !)
-F (.\Natcar.c)(0x4A0B3E15)(-c -mcpu=arm7tdmi -gdwarf-2 -MD -Wall -O2 -mapcs-frame -mthumb-interwork -IC:\Keil\ARM\INC\ADI\ -o natcar.o)
+F (.\Natcar.c)(0x4A171AB8)(-c -mcpu=arm7tdmi -gdwarf-2 -MD -Wall -O2 -mapcs-frame -mthumb-interwork -IC:\Keil\ARM\INC\ADI\ -o natcar.o)
 I (C:\KEIL\ARM\INC\ADI\ADUC7026.H)(0x48D91724)
 I (C:\KEIL\ARM\INC\ADI\IRQ.H)(0x48D91724)
 I (C:\KEIL\ARM\INC\ADI\TIMER.H)(0x48D91724)
